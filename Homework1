@@ -1,1 +1,31 @@
+number = int(input("Число: "))
 
+result = ""
+
+if number == 0:
+    result = "0"
+
+while number > 0:
+    remainder = number % 16
+
+    if remainder == 10:
+        symbol = "A"
+    elif remainder == 11:
+        symbol = "B"
+    elif remainder == 12:
+        symbol = "C"
+    elif remainder == 13:
+        symbol = "D"
+    elif remainder == 14:
+        symbol = "E"
+    elif remainder == 15:
+        symbol = "F"
+    else:
+        symbol = str(remainder)
+
+    result = symbol + result
+    print(str(number) + " / 16 = " + str(number // 16) +
+          " (остача " + str(remainder) + " -> '" + symbol + "')")
+    number //= 16
+
+print("Шістнадцяткове число: " + result)
