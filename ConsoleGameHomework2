@@ -1,0 +1,92 @@
+def greeting():
+    print("=" * 50)
+    print("Ласкаво просимо!")
+    name = input("Як тебе звати?\n-> ")
+    print(f"Вітаю тебе, {name}!")
+    print("\nОбери свій клас:")
+    print("1 - Воїн (120 здоров'я, 60 мани, 12 атаки)")
+    print("2 - Маг (80 здоров'я, 120 мани, 10 атаки)")
+    print("3 - Розбійник (90 здоров'я, 80 мани, 10 атаки)")
+
+    while True:
+        choice = input("-> ")
+        if choice in ["1", "2", "3"]:
+            break
+        print("Невірний вибір. Спробуй ще раз.")
+
+    if choice == "1":
+        player = {"name": name, "class": "Воїн", "health": 120, "mana": 60, "attack": 12}
+    elif choice == "2":
+        player = {"name": name, "class": "Маг", "health": 80, "mana": 120, "attack": 10}
+    else:
+        player = {"name": name, "class": "Розбійник", "health": 90, "mana": 80, "attack": 10}
+
+    print(f"\nТи обрав клас: {player['class']}")
+    print(f"Початкові стати — Здоров'я: {player['health']}, Мана: {player['mana']}, Атака: {player['attack']}")
+    print("=" * 50)
+    return player
+
+player = greeting()
+enemy = {"name": "Гоблін", "health": 70, "mana": 50, "attack": 8, "turns": 0}
+
+
+def statistic():
+    print("\n" + "=" * 60)
+    print(f"{player['class']} {player['name']}".ljust(30) + f"\t{enemy['name']}")
+    print(f"[HP: {player['health']} | Mana: {player['mana']}]" +
+          f"\t\t[HP: {enemy['health']} | Mana: {enemy['mana']}]")
+    print("=" * 60)
+
+def player_hit(charged=False):
+    if charged and player['mana'] < 20:
+        print("Недостатньо мани!")
+        return
+    hit = player['attack'] * (1.5 if charged else 1)
+    if charged:
+        player['mana'] -= 20
+    enemy['health'] -= hit
+    print(f"Ти вдарив {enemy['name']} на {hit:.1f} пунктів!")
+
+def enemy_hit():
+    enemy['turns'] += 1
+    if enemy['mana'] >= 20 and enemy['turns'] % 3 == 0:
+        hit = enemy['attack'] * 1.5
+        enemy['mana'] -= 20
+        print(f"{enemy['name']} використовує заряджену атаку!")
+    else:
+        hit = enemy['attack']
+    player['health'] -= hit
+    print(f"{enemy['name']} вдарив тебе на {hit:.1f} пунктів!")
+
+def player_menu():
+    print("\nТвій вибір:")
+    print("1 - Проста атака")
+    print("2 - Заряджена атака (-20 мани)")
+    print("3 - Втекти")
+    return input("-> ")
+
+def battle():
+    print("\nБій починається!")
+    while player['health'] > 0 and enemy['health'] > 0:
+        statistic()
+        choice = player_menu()
+        if choice == "1":
+            player_hit(False)
+        elif choice == "2":
+            player_hit(True)
+        elif choice == "3":
+            print(f"{player['name']} втік із бою!")
+            return
+
+        if enemy['health'] <= 0:
+            print(f"Ти переміг {enemy['name']}! ")
+            print(f"Кінець гри")
+            return
+
+        enemy_hit()
+
+    if player['health'] <= 0:
+        print(f"{player['name']} був переможений...")
+        print(f"Кінець гри")
+
+battle()
