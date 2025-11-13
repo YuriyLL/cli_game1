@@ -1,0 +1,154 @@
+import random
+
+def greeting():
+    print("=" * 50)
+    print("Ласкаво просимо!")
+    name = input("Як тебе звати?\n-> ")
+    print(f"Вітаю тебе, {name}!")
+    print("\nОбери свій клас:")
+    print("1 - Воїн (120 здоров'я, 60 мани, 12 атаки)")
+    print("2 - Маг (80 здоров'я, 120 мани, 10 атаки)")
+    print("3 - Розбійник (90 здоров'я, 80 мани, 10 атаки)")
+
+    while True:
+        choice = input("-> ")
+        if choice in ["1", "2", "3"]:
+            break
+        print("Невірний вибір. Спробуй ще раз.")
+
+    if choice == "1":
+        player = {"name": name, "class": "Воїн", "health": 120, "mana": 60, "attack": 12}
+    elif choice == "2":
+        player = {"name": name, "class": "Маг", "health": 80, "mana": 120, "attack": 10}
+    else:
+        player = {"name": name, "class": "Розбійник", "health": 90, "mana": 80, "attack": 10}
+
+    player.update({
+        "max_health": player["health"],
+        "max_mana": player["mana"],
+        "exp": 0,
+        "level": 1,
+        "points": 0
+    })
+
+    print(f"\nТи обрав клас: {player["class"]}")
+    print(f"Початкові стати — Здоров'я: {player["health"]}, Мана: {player["mana"]}, Атака: {player["attack"]}")
+    print("=" * 50)
+    return player
+
+
+enemies = [
+    {"name": "Гоблін", "health": 70, "mana": 50, "attack": 8, "exp_reward": 40},
+    {"name": "Орк", "health": 100, "mana": 40, "attack": 10, "exp_reward": 60},
+    {"name": "Троль", "health": 140, "mana": 30, "attack": 14, "exp_reward": 100},
+    {"name": "Некромант", "health": 90, "mana": 100, "attack": 12, "exp_reward": 120}
+]
+
+def statistic(player, enemy):
+    print("\n" + "=" * 60)
+    print(f"{player["class"]} {player["name"]} (Lv {player["level"]}) vs \t\t\t{enemy["name"]}")
+    print(f"[HP: {player["health"]}/{player["max_health"]} | Mana: {player["mana"]}/{player["max_mana"]}]"
+          f"    [HP: {enemy["health"]} | Mana: {enemy["mana"]}]")
+    print("=" * 60)
+
+def player_hit(player, enemy, charged=False):
+    if charged and player["mana"] < 20:
+        print("Недостатньо мани!")
+        return
+    hit = player["attack"] * (1.5 if charged else 1)
+    if charged:
+        player["mana"] -= 20
+    enemy["health"] -= hit
+    print(f"Ти вдарив {enemy["name"]} на {hit:.1f} пунктів!")
+
+def enemy_hit(player, enemy):
+    if enemy["mana"] >= 20 and random.random() < 0.3:
+        hit = enemy["attack"] * 1.5
+        enemy["mana"] -= 20
+        print(f"{enemy["name"]} використовує заряджену атаку!")
+    else:
+        hit = enemy["attack"]
+    player["health"] -= hit
+    print(f"{enemy["name"]} вдарив тебе на {hit:.1f} пунктів!")
+
+def player_menu():
+    print("\nТвій вибір:")
+    print("1 - Проста атака")
+    print("2 - Заряджена атака (-20 мани)")
+    print("3 - Втекти")
+    return input("-> ")
+
+def level_up(player):
+    exp_to_next = player["level"] * 100
+    if player["exp"] >= exp_to_next:
+        player["level"] += 1
+        player["exp"] -= exp_to_next
+        player["points"] += 2
+        print(f"\n{player["name"]} підвищив рівень до {player["level"]}!")
+        print("Ти отримав 2 очки для прокачки!")
+        upgrade_stats(player)
+
+def upgrade_stats(player):
+    while player["points"] > 0:
+        print(f"\nТи маєш {player["points"]} очок. Обери, що хочеш покращити:")
+        print("1 - +10 Здоров’я")
+        print("2 - +10 Мани")
+        print("3 - +2 Атаки")
+        choice = input("-> ")
+
+        if choice == "1":
+            player["max_health"] += 10
+            player["health"] = player["max_health"]
+        elif choice == "2":
+            player["max_mana"] += 10
+            player["mana"] = player["max_mana"]
+        elif choice == "3":
+            player["attack"] += 2
+        else:
+            print("Невірний вибір!")
+            continue
+        player["points"] -= 1
+        print("Прокачка застосована!")
+
+def battle(player):
+    enemy = dict(random.choice(enemies))
+    enemy["turns"] = 0
+    print(f"\n Бій з {enemy["name"]} починається!")
+
+    while player["health"] > 0 and enemy["health"] > 0:
+        statistic(player, enemy)
+        choice = player_menu()
+
+        if choice == "1":
+            player_hit(player, enemy, False)
+        elif choice == "2":
+            player_hit(player, enemy, True)
+        elif choice == "3":
+            print(f"{player["name"]} втік із бою!")
+            return
+
+        if enemy["health"] <= 0:
+            print(f"Ти переміг {enemy["name"]}!")
+            player["exp"] += enemy["exp_reward"]
+            print(f"Ти отримав {enemy["exp_reward"]} досвіду (всього {player['exp']})!")
+            level_up(player)
+            return
+
+        enemy_hit(player, enemy)
+
+    if player["health"] <= 0:
+        print(f"{player["name"]} був переможений...")
+        exit()
+
+def consolegame_loop():
+    player = greeting()
+    while True:
+        player["health"] = player["max_health"]
+        player["mana"] = player["max_mana"]
+        battle(player)
+        again = input("\nХочеш продовжити бій? (так/ні)\n-> ").lower()
+        if again != "так":
+            print(f"\nДо зустрічі, {player["name"]}! Твій рівень: {player["level"]} ({player['exp']} EXP)")
+            break
+
+consolegame_loop()
