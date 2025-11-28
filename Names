@@ -1,0 +1,16 @@
+names = ["Юрій", "Іван", "Саша"]
+
+def add(name):
+    names.append(name)
+
+def remove(name):
+    names.remove(name)
+
+def view():
+    print(names)
+
+view()          
+add("Марія")    
+view()          
+remove("Іван")  
+view()          
