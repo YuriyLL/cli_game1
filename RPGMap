@@ -1,0 +1,25 @@
+gameMap = [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 2, 0, 0, 1],
+    [1, 0, 1, 1, 1, 0, 1],
+    [1, 2, 1, 0, 1, 2, 1],
+    [1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+]
+
+player = (1, 1)  # (x, y)
+
+gameMap[player[1]][player[0]] = 3
+
+for row in gameMap:
+    for col in row:
+        if col == 1:
+            print("#", end=" ")
+        elif col == 2:
+            print("0", end=" ") 
+        elif col == 3:
+            print("@", end=" ")
+        else:
+            print("_", end=" ") 
+    print()
