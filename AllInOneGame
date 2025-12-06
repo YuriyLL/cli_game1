@@ -1,0 +1,284 @@
+import random
+import os
+
+gameMap = [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 2, 0, 0, 0, 1],
+    [1, 0, 1, 1, 1, 0, 1],
+    [1, 2, 1, 0, 1, 2, 1],
+    [1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+]
+
+
+playerPos = [1, 1]
+if gameMap[playerPos[1]][playerPos[0]] == 1:
+    raise RuntimeError("Стартова позиція гравця потрапляє в стіну!")
+gameMap[playerPos[1]][playerPos[0]] = 3
+
+
+enemies_catalog = [
+    {"name": "Гоблін", "health": 70, "mana": 50, "attack": 8, "exp_reward": 40},
+    {"name": "Орк", "health": 100, "mana": 40, "attack": 10, "exp_reward": 60},
+    {"name": "Троль", "health": 140, "mana": 30, "attack": 14, "exp_reward": 100},
+    {"name": "Некромант", "health": 90, "mana": 100, "attack": 12, "exp_reward": 120}
+]
+
+def greeting():
+    print("=" * 50)
+    print("Ласкаво просимо!")
+    name = input("Як тебе звати?\n-> ").strip() or "Невідомий"
+    print(f"Вітаю тебе, {name}!")
+    print("\nОбери свій клас:")
+    print("1 - Воїн (120 здоров'я, 60 мани, 12 атаки)")
+    print("2 - Маг (80 здоров'я, 120 мани, 10 атаки)")
+    print("3 - Розбійник (90 здоров'я, 80 мани, 10 атаки)")
+
+    while True:
+        choice = input("-> ").strip()
+        if choice in ("1", "2", "3"):
+            break
+        print("Невірний вибір. Спробуй ще раз.")
+
+    if choice == "1":
+        player = {"name": name, "class": "Воїн", "health": 120, "mana": 60, "attack": 12}
+    elif choice == "2":
+        player = {"name": name, "class": "Маг", "health": 80, "mana": 120, "attack": 10}
+    else:
+        player = {"name": name, "class": "Розбійник", "health": 90, "mana": 80, "attack": 10}
+
+    player.update({
+        "max_health": player["health"],
+        "max_mana": player["mana"],
+        "exp": 0,
+        "level": 1,
+        "points": 0
+    })
+
+    print(f"\nТи обрав клас: {player['class']}")
+    print(f"Початкові стати — Здоров'я: {player['health']}, Мана: {player['mana']}, Атака: {player['attack']}")
+    print("=" * 50)
+    return player
+
+def statistic(player, enemy):
+    print("\n" + "=" * 60)
+    print(f"{player['class']} {player['name']} (Lv {player['level']})  vs  {enemy['name']}")
+    print(f"[HP: {player['health']}/{player['max_health']} | Mana: {player['mana']}/{player['max_mana']}]"
+          f"    [HP: {enemy['health']} | Mana: {enemy['mana']}]")
+    print("=" * 60)
+
+def player_hit(player, enemy, charged=False):
+    if charged and player["mana"] < 20:
+        print("Недостатньо мани!")
+        return
+    hit = player["attack"] * (1.5 if charged else 1)
+    if charged:
+        player["mana"] -= 20
+    enemy["health"] -= hit
+    print(f"Ти вдарив {enemy['name']} на {hit:.1f} пунктів!")
+
+def enemy_hit(player, enemy):
+    if enemy["mana"] >= 20 and random.random() < 0.3:
+        hit = enemy["attack"] * 1.5
+        enemy["mana"] -= 20
+        print(f"{enemy['name']} використовує заряджену атаку!")
+    else:
+        hit = enemy["attack"]
+    player["health"] -= hit
+    print(f"{enemy['name']} вдарив тебе на {hit:.1f} пунктів!")
+
+def player_menu():
+    print("\nТвій вибір:")
+    print("1 - Проста атака")
+    print("2 - Заряджена атака (-20 мани)")
+    print("3 - Втекти")
+    return input("-> ").strip()
+
+def level_up(player):
+    exp_to_next = player["level"] * 100
+    while player["exp"] >= exp_to_next:
+        player["level"] += 1
+        player["exp"] -= exp_to_next
+        player["points"] += 2
+        print(f"\n{player['name']} підвищив рівень до {player['level']}!")
+        print("Ти отримав 2 очки для прокачки!")
+        upgrade_stats(player)
+        exp_to_next = player["level"] * 100
+
+def upgrade_stats(player):
+    while player["points"] > 0:
+        print(f"\nТи маєш {player['points']} очок. Обери, що хочеш покращити:")
+        print("1 - +10 Здоров’я")
+        print("2 - +10 Мани")
+        print("3 - +2 Атаки")
+        choice = input("-> ").strip()
+
+        if choice == "1":
+            player["max_health"] += 10
+            player["health"] = player["max_health"]
+        elif choice == "2":
+            player["max_mana"] += 10
+            player["mana"] = player["max_mana"]
+        elif choice == "3":
+            player["attack"] += 2
+        else:
+            print("Невірний вибір!")
+            continue
+        player["points"] -= 1
+        print("Прокачка застосована!")
+
+def battle(player):
+    enemy = dict(random.choice(enemies_catalog))
+    print(f"\nБій з {enemy['name']} починається!")
+
+    while player["health"] > 0 and enemy["health"] > 0:
+        statistic(player, enemy)
+        choice = player_menu()
+        if choice == "1":
+            player_hit(player, enemy, False)
+        elif choice == "2":
+            player_hit(player, enemy, True)
+        elif choice == "3":
+            print(f"{player['name']} втік із бою!")
+            return False  
+        else:
+            print("Невірний вибір у бою.")
+            continue
+
+        if enemy["health"] <= 0:
+            print(f"Ти переміг {enemy['name']}!")
+            player["exp"] += enemy["exp_reward"]
+            print(f"Ти отримав {enemy['exp_reward']} досвіду (всього {player['exp']})!")
+            level_up(player)
+            return True  
+
+        
+        enemy_hit(player, enemy)
+
+    if player["health"] <= 0:
+        print(f"{player['name']} був переможений...")
+       
+        exit(0)
+    return False
+
+
+def printMap():
+    for y, row in enumerate(gameMap):
+        for x, col in enumerate(row):
+            if col == 1:
+                print("#", end=" ")
+            elif col == 2:
+                print("0", end=" ")   
+            elif col == 3:
+                print("@", end=" ")   
+            else:
+                print("_", end=" ")   
+        print()
+    print()
+
+def printStat(player):
+    print("\n=== STATISTICS ===")
+    print(f"Ім'я: {player['name']}")
+    print(f"Клас: {player['class']}")
+    print(f"HP: {player['health']}/{player['max_health']}")
+    print(f"Mana: {player['mana']}/{player['max_mana']}")
+    print(f"Attack: {player['attack']}")
+    print(f"Level: {player['level']}  EXP: {player['exp']}")
+    print("==================\n")
+
+
+def save_map(filename="data/mapSave.txt"):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, "w", encoding="utf-8") as file:
+        for row in gameMap:
+            file.write(", ".join(str(item) for item in row) + "\n")
+    print(f"Карту збережено в {filename}.")
+
+
+def movePlayer(player):
+    global playerPos
+    print("1. Вгору\n2. Вліво\n3. Вправо\n4. Вниз\n5. Назад")
+
+    try:
+        op = int(input("-> ").strip())
+    except ValueError:
+        print("Введи число!")
+        return
+
+    old_x, old_y = playerPos
+    nx, ny = old_x, old_y
+
+    if op == 1:
+        ny -= 1
+    elif op == 2:
+        nx -= 1
+    elif op == 3:
+        nx += 1
+    elif op == 4:
+        ny += 1
+    elif op == 5:
+        return
+    else:
+        print("Невірний вибір!")
+        return
+
+    
+    if ny < 0 or ny >= len(gameMap) or nx < 0 or nx >= len(gameMap[0]):
+        print("Ти не можеш вийти за межі карти.")
+        return
+
+    tile = gameMap[ny][nx]
+
+    if tile == 1:
+        print("Ти не можеш ходити по стінах.")
+        return
+
+    if tile == 2:
+        print("Тут ворог! Починається бій!")
+        result = battle(player)
+        if result:  
+            gameMap[old_y][old_x] = 0
+            gameMap[ny][nx] = 3
+            playerPos = [nx, ny]
+            print("Ворога видалено з карти.")
+        else:
+            print("Ти повернувся на свою позицію.")
+        return
+
+
+    gameMap[old_y][old_x] = 0
+    gameMap[ny][nx] = 3
+    playerPos = [nx, ny]
+
+
+def mainMenu(player):
+    print("1. Move\n2. Stats\n3. Save\n4. Exit")
+    try:
+        op = int(input("-> ").strip())
+    except ValueError:
+        print("Введи число!")
+        return
+
+    if op == 1:
+        movePlayer(player)
+    elif op == 2:
+        printStat(player)
+    elif op == 3:
+        save_map()
+    elif op == 4:
+        print("До зустрічі!")
+        exit(0)
+    else:
+        print("Невірний вибір!")
+
+
+def run_game():
+    player = greeting()
+    print("\n--- Починаємо гру ---\n")
+    while True:
+        printMap()
+        mainMenu(player)
+
+if __name__ == "__main__":
+    run_game()
