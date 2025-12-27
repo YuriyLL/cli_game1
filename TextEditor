@@ -1,0 +1,25 @@
+import tkinter as tk
+
+root = tk.Tk()
+root.geometry("400x300")
+root.title("Редактор")
+
+text = tk.Text(root)
+text.pack(expand=True, fill="both")
+
+def save_file():
+    with open("text.txt", "w") as f:
+        f.write(text.get("1.0", "end"))
+
+def load_file():
+    try:
+        with open("text.txt", "r") as f:
+            text.delete("1.0", "end")
+            text.insert("1.0", f.read())
+    except FileNotFoundError:
+        pass
+
+tk.Button(root, text="Save", command=save_file).pack(side="left")
+tk.Button(root, text="Load", command=load_file).pack(side="left")
+
+root.mainloop()
