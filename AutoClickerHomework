@@ -1,0 +1,61 @@
+import tkinter as tk
+
+root = tk.Tk()
+root.title("Auto Clicker")
+root.geometry("300x200")
+root.resizable(False, False)
+root.configure(bg="gray")
+
+running = True  
+
+title = tk.Label(root, text="Auto Clicker", font=("Times New Roman", 16, "bold"), bg="gray", fg="green")
+title.pack(pady=10)
+
+label = tk.Label(root, text="Кліків на секунду:", font=("Times New Roman", 12), bg="gray")
+label.pack(pady=5)
+
+entry = tk.Entry(root, font=("Times New Roman", 12))
+entry.insert(0, "5")
+entry.pack(pady=5)
+
+def filter_input(event=None):
+    value = entry.get()
+    entry.delete(0, tk.END)
+    entry.insert(0, "".join(v for v in value if v in "0123456789"))
+
+entry.bind("<KeyRelease>", filter_input)
+
+def click():
+    if not running:
+        return
+
+    value = entry.get()
+    delay = 1000
+
+    if value:
+        delay = 1000 // int(value)
+
+    print(f"Клік | {value or 0} cps")
+    root.after(delay, click)
+
+def start():
+    print("Автоклікер запущено")
+    click()
+
+def stop():
+    global running
+    running = False
+    print("Автоклікер зупинено")
+    root.destroy()
+
+buttons = tk.Frame(root, bg="gray")
+buttons.pack(pady=20)
+
+tk.Button(buttons, text="Почати", font=("Times New Roman", 12), bg="green", fg="white", width=10, command=start).pack(side="left", padx=10)
+
+tk.Button(buttons, text="Вийти", font=("Times New Roman", 12), bg="red", fg="white", width=10, command=stop).pack(side="right", padx=10)
+
+print("Автоклікер стартує автоматично")
+start()
+
+root.mainloop()
