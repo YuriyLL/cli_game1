@@ -1,0 +1,24 @@
+import keyboard
+import mouse
+
+def paint_square():
+    mouse.press('left')
+
+    for i in range(150):
+        mouse.move(1, 0, absolute=False)
+
+    for i in range(150):
+        mouse.move(0, 1, absolute=False)
+
+    for i in range(150):
+        mouse.move(-1, 0, absolute=False)
+
+    for i in range(150):
+        mouse.move(0, -1, absolute=False)
+
+    mouse.release('left') 
+
+keyboard.add_hotkey('R', paint_square)
+
+print("Все готово, натисніть R та тягніть щоб малювати")
+keyboard.wait()
