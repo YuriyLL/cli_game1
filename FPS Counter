@@ -1,0 +1,51 @@
+import pygame
+import math
+
+pygame.init()
+
+SCREEN_WIDTH = 1920
+SCREEN_HEIGHT = 1024
+
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), vsync=1)
+pygame.display.set_caption("My first game")
+
+clock = pygame.time.Clock()
+FPS = 60
+
+t = 0
+running = True
+
+
+def poll_events():
+    global running
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+
+def update():
+    global t
+    dt = clock.get_time() / 1000
+    t += dt
+
+
+def draw():
+    value = abs(math.sin(t))
+
+    red = int(255 * (1 - value))
+    blue = int(255 * value)
+
+    screen.fill((red, 0, blue))
+    pygame.display.flip()
+
+
+while running:
+    clock.tick(FPS)
+
+    poll_events()
+    update()
+    draw()
+
+    print(f"FPS: {clock.get_fps():.2f}")
+
+pygame.quit()
