@@ -1,0 +1,81 @@
+import pygame
+import math
+
+def clamp(pos):
+    return pos % 256
+
+pygame.init()
+
+SCREEN_WIDTH = 1920
+SCREEN_HEIGHT = 1024
+
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), vsync=1)
+pygame.display.set_caption("My first game")
+
+clock = pygame.time.Clock()
+FPS = 60
+
+t = 0
+running = True
+
+player_pos = pygame.Vector2(500, 300)
+player_size = pygame.Vector2(100, 100)
+speed = 5
+
+screen_color = pygame.Vector3(0, 0, 0)
+
+def poll_events():
+    global running
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.MOUSEMOTION:
+            if event.pos[1] != 0: 
+                screen_color.x = clamp(event.pos[0])
+                screen_color.y = clamp(event.pos[1])
+                screen_color.z = clamp(event.pos[0] / event.pos[1])
+
+def update(dt):
+    global t
+    t += dt
+
+    direction = pygame.Vector2(0, 0)
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_d]:
+        direction.x += 1
+    if keys[pygame.K_a]:
+        direction.x -= 1
+    if keys[pygame.K_s]:
+        direction.y += 1
+    if keys[pygame.K_w]:
+        direction.y -= 1
+
+    if direction.length() != 0:
+        direction = direction.normalize()
+
+    player_pos.x += direction.x * speed * dt * 100
+    player_pos.y += direction.y * speed * dt * 100
+
+def draw():
+    value = abs(math.sin(t))
+
+    red = int(255 * (1 - value))
+    blue = int(255 * value)
+
+    screen.fill(screen_color)
+
+    pygame.draw.rect(screen, (0, 0, 0), (player_pos, player_size))
+    pygame.display.flip()
+
+while running:
+    dt = clock.tick(FPS) / 1000
+
+    poll_events()
+    update(dt)
+    draw()
+
+    print(f"FPS: {clock.get_fps():.2f}")
+
+pygame.quit()
