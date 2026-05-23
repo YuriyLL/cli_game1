@@ -1,0 +1,159 @@
+import pygame
+
+pygame.init()
+
+SCREEN_WIDTH = 1920
+SCREEN_HEIGHT = 1024
+
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), vsync=1)
+pygame.display.set_caption("Platformer")
+
+clock = pygame.time.Clock()
+FPS = 60
+
+G = 10
+
+running = True
+game_over = False
+
+font = pygame.font.SysFont("Arial", 72)
+
+player_rect = pygame.Rect(500, 300, 100, 100)
+
+vertical_speed = 0
+horizontal_speed = 10
+jump_force = -20
+
+on_ground = False
+
+camera_x = 0
+
+ground_rect = pygame.Rect(-1000, 800, 5000, 100)
+platform_rect = pygame.Rect(1200, 650, 300, 50)
+
+enemy_rect = pygame.Rect(1700, 730, 100, 70)
+
+screen_color = (30, 30, 30)
+
+
+def poll_events():
+    global running, vertical_speed, on_ground
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and on_ground:
+                vertical_speed = jump_force
+                on_ground = False
+
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_d]:
+        player_rect.x += horizontal_speed
+
+    if keys[pygame.K_a]:
+        player_rect.x -= horizontal_speed
+
+
+def update():
+    global vertical_speed, on_ground, game_over, camera_x
+
+    if game_over:
+        return
+
+    vertical_speed += G * 0.1
+
+    player_rect.y += vertical_speed
+
+    on_ground = False
+
+    if player_rect.colliderect(ground_rect) and vertical_speed >= 0:
+        player_rect.bottom = ground_rect.top
+        vertical_speed = 0
+        on_ground = True
+
+    if player_rect.colliderect(platform_rect) and vertical_speed >= 0:
+        player_rect.bottom = platform_rect.top
+        vertical_speed = 0
+        on_ground = True
+
+    if player_rect.colliderect(enemy_rect):
+        game_over = True
+
+    if player_rect.y > SCREEN_HEIGHT + 500:
+        game_over = True
+
+    camera_x = player_rect.x - SCREEN_WIDTH // 2
+
+
+def draw():
+    screen.fill(screen_color)
+
+    for i in range(-5000, 5000, 300):
+        pygame.draw.rect(
+            screen,
+            (50, 50, 70),
+            (i - camera_x * 0.3, 0, 150, SCREEN_HEIGHT)
+        )
+
+    pygame.draw.rect(
+        screen,
+        (200, 200, 200),
+        (
+            ground_rect.x - camera_x,
+            ground_rect.y,
+            ground_rect.width,
+            ground_rect.height
+        )
+    )
+
+    pygame.draw.rect(
+        screen,
+        (100, 255, 100),
+        (
+            platform_rect.x - camera_x,
+            platform_rect.y,
+            platform_rect.width,
+            platform_rect.height
+        )
+    )
+
+    pygame.draw.rect(
+        screen,
+        (255, 0, 0),
+        (
+            enemy_rect.x - camera_x,
+            enemy_rect.y,
+            enemy_rect.width,
+            enemy_rect.height
+        )
+    )
+
+    pygame.draw.rect(
+        screen,
+        (255, 150, 200),
+        (
+            player_rect.x - camera_x,
+            player_rect.y,
+            player_rect.width,
+            player_rect.height
+        )
+    )
+
+    if game_over:
+        text = font.render("GAME OVER", True, (255, 0, 0))
+        screen.blit(text, (SCREEN_WIDTH // 2 - 250, SCREEN_HEIGHT // 2))
+
+    pygame.display.flip()
+
+
+while running:
+    clock.tick(FPS)
+
+    poll_events()
+    update()
+    draw()
+
+pygame.quit()
