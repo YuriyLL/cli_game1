@@ -1,0 +1,115 @@
+import os
+ 
+employers = []
+ 
+if not os.path.exists("data1.csv"):
+    with open("data1.csv", "w") as data:
+        data.write("ID,Firstname,Lastname,1q,2q,3q,4q,Summary\n")
+ 
+class Employee:
+    def __init__(self, id, firstname, lastname, q1=0, q2=0, q3=0, q4=0, summary=0):
+        self.id = id
+        self.firstname = firstname
+        self.lastname = lastname
+        self.q1 = q1
+        self.q2 = q2
+        self.q3 = q3
+        self.q4 = q4
+        self.summary = summary
+ 
+def load_data():
+    with open("data1.csv", "r") as data:
+        header = True
+        for line in data.readlines():
+            if header:
+                header = False
+                continue
+            
+            line = line.replace("\n", "")
+            if not line.strip():
+                continue
+                
+            line = line.split(",")
+
+            employee = Employee(
+                int(line[0]),
+                line[1],
+                line[2],
+                line[3],
+                line[4],
+                line[5],
+                line[6],
+                line[7]
+            )
+            employers.append(employee)
+ 
+def append_employee(firstname, lastname, q1=0, q2=0, q3=0, q4=0, summary=0):
+    if len(employers) == 0:
+        employee = Employee(0,firstname,lastname,q1,q2,q3,q4,summary)
+        employers.append(employee)
+        return
+ 
+    employee = Employee(
+            employers[-1].id + 1,
+            firstname,
+            lastname,
+            q1,
+            q2,
+            q3,
+            q4,
+            summary)
+    employers.append(employee)
+ 
+def save_employers():
+    with open("data1.csv", "w") as data:
+        text = "ID,Firstname,Lastname,1q,2q,3q,4q,Summary\n"
+        for employee in employers:
+            text += f"{employee.id},{employee.firstname},{employee.lastname},{employee.q1},{employee.q2},{employee.q3},{employee.q4},{employee.summary}\n"
+ 
+        data.write(text)
+
+def delete_employee(emp_id):
+    global employers
+    original_count = len(employers)
+    employers = [emp for emp in employers if emp.id != emp_id]
+    
+    if len(employers) < original_count:
+        print(f"Employee with ID {emp_id} deleted from memory.")
+    else:
+        print(f"No employee found with ID {emp_id}.")
+
+def calculate_summary():
+    for emp in employers:
+        emp.summary = str(float(emp.q1) + float(emp.q2) + float(emp.q3) + float(emp.q4))
+    print("Summary calculated")
+ 
+load_data()
+
+while True:
+    print("\n1. Add Employee | 2. Delete Employee | 3. Calculate Summaries | 4. Save & Exit")
+    choice = input("Select an option: ")
+
+    if choice == "1":
+        fname = input("First Name: ")
+        lname = input("Last Name: ")
+        q1 = input("Q1 (default 0): ") or "0"
+        q2 = input("Q2 (default 0): ") or "0"
+        q3 = input("Q3 (default 0): ") or "0"
+        q4 = input("Q4 (default 0): ") or "0"
+        
+        append_employee(fname, lname, q1, q2, q3, q4)
+        print(f"Added {fname} to memory.")
+
+    elif choice == "2":
+        try:
+            target_id = int(input("Enter the ID of the employee to delete: "))
+            delete_employee(target_id)
+        except ValueError:
+            print("Invalid input. Please enter a numerical ID.")
+
+    elif choice == "3":
+        calculate_summary()
+
+    elif choice == "4":
+        save_employers()
+        break
